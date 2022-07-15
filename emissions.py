@@ -115,7 +115,13 @@ class CarbonMonoxide:
 
 
 class Calculation:
-    def __init__(self, B, Q, fuel, constr, D, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4):
+    def __init__(self):
+        # отдельные объекты для возможности хранить постоянные величины
+        self.set_nitrogen = NitrogenFromGas()
+        self.set_sulfur = SulfurOxides()
+        self.set_carbon = CarbonMonoxide()
+
+    def display(self, B, Q, fuel, constr, D, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4):
         """
         B - расчетный расход топлива тыс.нм^3/год или же фактический расход топлива на котел
         Q - низшая теплота сгорания топлива, МДж/нм^3
@@ -133,21 +139,18 @@ class Calculation:
         q3 - процент тепла вследствии неполноты сгорания топлива, %
         q4 - потери тепла вследствие механической неполноты сгорания топлива, %
         """
-        # отдельные объекты для возможности хранить постоянные величины
-        self.set_nitrogen = NitrogenFromGas()
-        self.set_sulfur = SulfurOxides()
-        self.set_carbon = CarbonMonoxide()
         # вычисление выбросов
-        self.set_nitrogen.emissions_calculation(B, Q, constr, D, typefire, t, r, j)
-        self.set_sulfur.emissions_calculation(B, fuel, typeash, ishydrogen, S, H2)
-        self.set_carbon.emissions_calculation(B, q3, fuel, Q, q4)
+        res1 = self.set_nitrogen.emissions_calculation(B, Q, constr, D, typefire, t, r, j)
+        res2 = self.set_sulfur.emissions_calculation(B, fuel, typeash, ishydrogen, S, H2)
+        res3 = self.set_carbon.emissions_calculation(B, q3, fuel, Q, q4)
+        return res1, res2, res3
 
 
 class CalculationSteam(Calculation):
-    def __init__(self, B, Q, fuel, D, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4):
-        Calculation.__init__(self, B, Q, fuel, 'steam', D, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4)
+    def display(self, B, Q, fuel, _, D, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4):
+        Calculation.display(self, B, Q, fuel, 'steam', D, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4)
 
 
 class CalculationWater(Calculation):
-    def __init__(self, B, Q, fuel, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4):
-        Calculation.__init__(self, B, Q, fuel, 'water', 0, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4)
+    def display(self, B, Q, fuel, _1, _2, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4):
+        Calculation.display(self, B, Q, fuel, 'water', 0, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4)
