@@ -1,3 +1,6 @@
+import time
+
+
 class NitrogenOxide:
     def __init__(self):
         ...
@@ -50,19 +53,6 @@ class NitrogenFromGas(NitrogenOxide):
         return M
 
 
-class FuelOil(NitrogenOxide):
-    """
-    расчет выбросов оксидов азота при сжигании мазута
-    """
-    ...
-
-
-class StratifiedCombustion(NitrogenOxide):
-    """
-    расчет выбросов оксидов азота при слоевом сжигании твердого топлива
-    """
-    ...
-
 
 class SulfurOxides:
     """
@@ -114,43 +104,14 @@ class CarbonMonoxide:
         return M
 
 
-class Calculation:
-    def __init__(self):
-        # отдельные объекты для возможности хранить постоянные величины
-        self.set_nitrogen = NitrogenFromGas()
-        self.set_sulfur = SulfurOxides()
-        self.set_carbon = CarbonMonoxide()
-
-    def display(self, B, Q, fuel, constr, D, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4):
-        """
-        B - расчетный расход топлива тыс.нм^3/год или же фактический расход топлива на котел
-        Q - низшая теплота сгорания топлива, МДж/нм^3
-        D - фактическая паропроизводительность котла т/ч - вводится только для паровых котлов
-        typefire - тип горелки: напорный тип - air, инжекционный - injection, двухступенчатый - twosteps
-        t - температура воздуха подаваемого для горения
-        r - степень рециркуляции дымовых газов, %
-        j - доля воздуха, подаваемого в промежуточную зону факела, в процентах от обещего количества
-        организованного воздуха
-        typeash - 1 - сухой золоуловитель
-                - 2 - мокрый - пока не реализован
-        ishydrogen - есть ли в топливе сереводород
-        S - содержание серы в топливе на рабочую массу, %
-        H2 - содержиание на рабочую массу сероводорода в топливе, %
-        q3 - процент тепла вследствии неполноты сгорания топлива, %
-        q4 - потери тепла вследствие механической неполноты сгорания топлива, %
-        """
-        # вычисление выбросов
-        res1 = self.set_nitrogen.emissions_calculation(B, Q, constr, D, typefire, t, r, j)
-        res2 = self.set_sulfur.emissions_calculation(B, fuel, typeash, ishydrogen, S, H2)
-        res3 = self.set_carbon.emissions_calculation(B, q3, fuel, Q, q4)
-        return res1, res2, res3
-
-
-class CalculationSteam(Calculation):
-    def display(self, B, Q, fuel, _, D, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4):
-        Calculation.display(self, B, Q, fuel, 'steam', D, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4)
-
-
-class CalculationWater(Calculation):
-    def display(self, B, Q, fuel, _1, _2, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4):
-        Calculation.display(self, B, Q, fuel, 'water', 0, typefire, t, r, j, typeash, ishydrogen, S, H2, q3, q4)
+if __name__ == '__main__':
+    x = NitrogenFromGas()
+    y = CarbonMonoxide()
+    with open('data') as file:
+        for t in file:
+            t = t.rstrip()
+            a = x.emissions_calculation(1000, 31.8, 'steam', 274.1, 'air', float(t), 0, 0)
+            b = y.emissions_calculation(1000, 10, 'gas', 31.8, 0)
+            print(a, b)
+            time.sleep(1)
+            # SulfurOxides для нашего случая не расчитывается, так как серы нет
