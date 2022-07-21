@@ -57,6 +57,21 @@ class NitrogenFromGas(NitrogenOxide):
         return M
 
 
+            K = 0.01*(D**0.5) + 0.03
+        else:
+            Qt = Bp*Q
+            K = 0.0113*(Qt**0.5) + 0.03
+        choice_bk = {'air': 1, 'injection': 1.6, 'twosteps': 0.7}
+        bk = choice_bk[typefire]
+        bt = 1 + 0.002*(t - 30)
+        # для повышения точности можно улучшить расчеты ba
+        ba = 1.225
+        br = 0.16*(r**0.5)
+        bj = 0.022 * j
+        M = Bp*Q*K*bk*bt*ba*(1-br)*(1-bj)*kn
+        return M
+
+
 class SulfurOxides:
     """
     расчет выбросов оксидов серы
@@ -83,6 +98,9 @@ class SulfurOxides:
         if ishydrogen:
             S += 0.94 * H2
         M = 0.02 * B * S * (1 - n1) * (1 - n2)
+            S += 0.94*H2
+        M = 0.02*B*S*(1-n1)*(1-n2)
+
         return M
 
 
@@ -104,6 +122,7 @@ class CarbonMonoxide:
         """
         fuels = {'gas': 0.5, 'fueloil': 0.65, 'solidfuel': 1}
         R = fuels[typefuel]
+
         C = q3 * R * Q
         M = 10 ** (-3) * B * C * (1 - q4 / 100)
         return M
@@ -172,3 +191,21 @@ class Calculate:
         plt.close()
 
         return [a, b]
+
+        C = q3*R*Q
+        M = 10**(-3)*B*C*(1-q4/100)
+        return M
+
+
+if __name__ == '__main__':
+    x = NitrogenFromGas()
+    y = CarbonMonoxide()
+    with open('data') as file:
+        for t in file:
+            t = t.rstrip()
+            a = x.emissions_calculation(1000, 31.8, 'steam', 274.1, 'air', float(t), 0, 0)
+            b = y.emissions_calculation(1000, 10, 'gas', 31.8, 0)
+            print(a, b)
+            time.sleep(1)
+            # SulfurOxides для нашего случая не расчитывается, так как серы нет
+
