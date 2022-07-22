@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import *
 import pandas as pd
 import numpy as np
 
+
 current_method = 1
 
 name = "data"
